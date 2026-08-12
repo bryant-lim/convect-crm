@@ -6,8 +6,10 @@ if [ -d "/home/frappe/frappe-bench/apps/frappe" ]; then
     bench start
 else
     echo "Creating new bench..."
-    bench init --skip-redis-config-generation frappe-bench --version version-15
+    mkdir -p frappe-bench
     cd frappe-bench
+    # Initialize the bench directly inside the current empty folder to prevent 'already exists' error
+    bench init --skip-redis-config-generation . --version version-15
 
     # Use containers instead of localhost
     bench set-mariadb-host mariadb
