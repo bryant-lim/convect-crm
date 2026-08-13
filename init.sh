@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -d "/home/frappe/frappe-bench/apps/frappe" ]; then
+if [ -d "/home/frappe/frappe-bench/apps/frappe" ] && [ -f "/home/frappe/frappe-bench/sites/common_site_config.json" ] && [ -f "/home/frappe/frappe-bench/Procfile" ]; then
     echo "Bench already exists, starting services..."
     cd frappe-bench
     bench start
