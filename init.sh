@@ -23,8 +23,8 @@ else
     ln -s /workspace/apps/crm apps/crm
     ./env/bin/pip install -e apps/crm
 
-    # Install JS/Node dependencies
-    yarn install
+    # Install CRM frontend Node/JS dependencies
+    (cd apps/crm/frontend && yarn install)
 
     # Use containers instead of localhost
     bench set-mariadb-host mariadb
