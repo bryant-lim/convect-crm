@@ -39,7 +39,7 @@ def capture_web_lead(name, email, mobile_no=None, company_name=None, source="web
 			)
 
 	# 2. Prevent duplicate email leads
-	existing_lead = frappe.db.exists("CRM Lead", {"email_id": email})
+	existing_lead = frappe.db.exists("CRM Lead", {"email": email})
 	if existing_lead:
 		# If notes is provided, append it to the existing lead's notes anyway!
 		if notes:
@@ -62,7 +62,7 @@ def capture_web_lead(name, email, mobile_no=None, company_name=None, source="web
 		"doctype": "CRM Lead",
 		"first_name": first_name,
 		"last_name": last_name,
-		"email_id": email,
+		"email": email,
 		"mobile_no": mobile_no or "",
 		"organization": company_name or "",
 		"lead_source": source or "web_chat"
