@@ -138,53 +138,38 @@ rsync -avz ./backups/ root@your_vps_ip:/opt/convect-crm/backups/
 
 ---
 
-### Phase 6: Domain Routing & SSL Setup (Nginx Reverse Proxy)
+### Phase 6: Domain Routing & SSL Setup (Traefik Reverse Proxy)
 
-Set up Nginx on the host VPS to forward external web requests on port `80` (HTTP) and `443` (HTTPS) to the containers.
+Since the host VPS uses Traefik on port 80/443, we route all traffic using Docker labels natively in `docker-compose.yml` instead of configuring Nginx.
 
-1. **Install Nginx and Certbot** on the VPS host:
+1. **Verify labels in `docker-compose.yml`**:
+   The `frappe` service is pre-configured with the following labels to define standard and WebSocket routers:
+   ```yaml
+    labels:
+      - "traefik.enable=true"
+      # Route crm.convect.tech -> Port 8000 (Web App)
+      - "traefik.http.routers.crm-web.rule=Host(`crm.convect.tech`)"
+      - "traefik.http.routers.crm-web.entrypoints=websecure"
+      - "traefik.http.routers.crm-web.tls=true"
+      - "traefik.http.routers.crm-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.crm-web.service=crm-web-service"
+      - "traefik.http.services.crm-web-service.loadbalancer.server.port=8000"
+      # Route crm.convect.tech/socket.io -> Port 9000 (WebSockets)
+      - "traefik.http.routers.crm-socketio.rule=Host(`crm.convect.tech`) && PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.crm-socketio.entrypoints=websecure"
+      - "traefik.http.routers.crm-socketio.tls=true"
+      - "traefik.http.routers.crm-socketio.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.crm-socketio.service=crm-socketio-service"
+      - "traefik.http.services.crm-socketio-service.loadbalancer.server.port=9000"
+   ```
+
+2. **Re-create the container to apply labels**:
+   On your VPS terminal, restart the containers so Traefik picks up the new labels:
    ```bash
-   sudo apt install -y nginx certbot python3-certbot-nginx
+   docker compose down
+   docker compose up -d
    ```
-
-2. **Configure Nginx**:
-   Create a config file at `/etc/nginx/sites-available/crm.convect.tech`:
-   ```nginx
-   server {
-       listen 80;
-       server_name crm.convect.tech;
-
-       location / {
-           proxy_pass http://127.0.0.1:8000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-
-       location /socket.io {
-           proxy_pass http://127.0.0.1:9000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection "upgrade";
-           proxy_set_header Host $host;
-       }
-   }
-   ```
-
-3. **Enable configuration and reload Nginx**:
-   ```bash
-   ln -s /etc/nginx/sites-available/crm.convect.tech /etc/nginx/sites-enabled/
-   nginx -t
-   systemctl reload nginx
-   ```
-
-4. **Obtain SSL Certificate (HTTPS)**:
-   Ensure your domain DNS `crm.convect.tech` is pointed to the Hostinger VPS IP address, then run:
-   ```bash
-   sudo certbot --nginx -d crm.convect.tech
-   ```
-   *Certbot will automatically obtain certificates and update your Nginx configuration.*
+   *Traefik will automatically detect the new rules, generate SSL certificates via Let's Encrypt, and secure the domain `crm.convect.tech` instantly.*
 
 ---
 
