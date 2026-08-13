@@ -6,6 +6,12 @@ if [ -d "/home/frappe/frappe-bench/apps/frappe" ]; then
     bench start
 else
     echo "Creating new bench..."
+    # If the directory exists but frappe is not present (incomplete initialization), clean it up first
+    if [ -d "frappe-bench" ]; then
+        echo "Removing incomplete frappe-bench directory..."
+        rm -rf frappe-bench
+    fi
+
     # Initialize the bench normally
     bench init --skip-redis-config-generation frappe-bench --version version-15
     cd frappe-bench
@@ -20,7 +26,11 @@ else
     sed -i '/redis/d' ./Procfile
     sed -i '/watch/d' ./Procfile
 
-    bench get-app crm --branch main
+    if [ ! -d "apps/crm" ]; then
+        bench get-app crm --branch main
+    fi
+    bench get-app https://github.com/shridarpatil/frappe_whatsapp.git
+    bench get-app https://github.com/shridarpatil/frappe_whatsapp_chatbot.git
 
     echo "Setting up new site..."
     bench new-site crm.localhost \
@@ -29,6 +39,8 @@ else
         --no-mariadb-socket
 
     bench --site crm.localhost install-app crm
+    bench --site crm.localhost install-app frappe_whatsapp
+    bench --site crm.localhost install-app frappe_whatsapp_chatbot
     bench --site crm.localhost set-config developer_mode 1
     bench --site crm.localhost set-config mute_emails 1
     bench --site crm.localhost set-config server_script_enabled 1

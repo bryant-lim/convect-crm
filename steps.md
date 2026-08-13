@@ -1,63 +1,78 @@
-# Frappe CRM Setup & Deployment Guide (Named Volumes)
+# Frappe CRM Setup & Deployment Guide
 
-Because we are using Docker named volumes, the database and site files are managed internally by Docker. Follow these steps to set up and deploy.
+Choose the method that matches your deployment scenario.
 
 ---
 
-## 1. Setup on Local Dev Machine
-Start the containers locally:
+## Method A: Direct Fresh Setup on VPS (Easiest for clean setup)
+
+Use this method if you want to deploy a fresh, clean CRM directly on your Hostinger VPS without developing locally first.
+
+### Step 1: SSH into your VPS
+```bash
+ssh root@72.61.119.91
+```
+
+### Step 2: Create project directory and configure permissions
+Ensure the host directories exist and have correct owner permissions for the container user (UID 1000):
+```bash
+mkdir -p convect-crm
+cd convect-crm
+mkdir -p frappe-bench db-data
+chown -R 1000:1000 frappe-bench db-data
+```
+
+### Step 3: Clone the repository config files
+```bash
+git clone https://github.com/bryant-lim/convect-crm.git .
+```
+
+### Step 4: Start the containers
 ```bash
 docker compose up -d
 ```
-*Wait 2–3 minutes for initialization. Access the site at `http://localhost:8000` (User: `Administrator`, Pass: `admin`).*
+*Note: This will take 2–3 minutes on first run as it initializes the database and pulls the bench.*
 
-## 2. Setup on Hostinger VPS
-1. SSH into your VPS:
-   ```bash
-   ssh root@72.61.119.91
-   ```
-2. Clone the repository into a project directory:
-   ```bash
-   git clone https://github.com/bryant-lim/convect-crm.git convect-crm
-   cd convect-crm
-   ```
-3. Start the containers on the VPS:
-   ```bash
-   docker compose up -d
-   ```
-   *(Wait 2–3 minutes for VPS site setup to complete).*
+### Step 5: Monitor the setup progress
+```bash
+docker compose logs -f frappe
+```
+Wait until you see logs showing `bench start` or the web services running.
+
+### Step 6: Seed the Malaysian SME Mock Data
+Run the generator script inside the container:
+```bash
+docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.localhost execute /workspace/generate_mock_data.py"
+```
+You can now access your site at `http://72.61.119.91:8000`.
 
 ---
 
-## 3. Sync Database Data (Local to VPS)
+## Method B: Syncing from Local to VPS (For migrating local work)
 
-To copy your local custom changes and database entries to the VPS:
+Use this method if you have already set up and customized your CRM locally and want to copy your exact database and files over to the VPS.
 
-### Step A: Run backup on your local machine
+### Step 1: Stop local containers (to ensure database files are safely written)
+On your local machine:
 ```bash
-docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.localhost backup --with-files"
-```
-*(This generates backup files inside the container).*
-
-### Step B: Copy the backup files from the local container to your local Mac
-```bash
-docker compose cp frappe:/home/frappe/frappe-bench/sites/crm.localhost/private/backups/ ./backups
+docker compose down
 ```
 
-### Step C: Upload the backup directory to the VPS
+### Step 2: Sync everything (including DB and plugin files) to your VPS
 ```bash
-scp -r ./backups root@72.61.119.91:/root/convect-crm/
+rsync -avz --exclude '.git' ./ root@72.61.119.91:/root/convect-crm/
 ```
 
-### Step D: Copy the backup file into the VPS container
-SSH into your VPS, go to `/root/convect-crm`, and run:
+### Step 3: SSH into VPS, fix folder ownership permissions, and start the containers
 ```bash
-docker compose cp ./backups/<backup_filename>.sql.gz frappe:/home/frappe/frappe-bench/
+ssh root@72.61.119.91 "cd /root/convect-crm && mkdir -p frappe-bench db-data && chown -R 1000:1000 frappe-bench db-data && docker compose up -d"
 ```
 
-### Step E: Restore the database on the VPS
-Run the restore command inside the VPS container:
+### Step 4: Start your local containers back up
+On your local machine:
 ```bash
-docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.localhost restore /home/frappe/frappe-bench/<backup_filename>.sql.gz --mariadb-root-password 123"
+docker compose up -d
 ```
-*(Restart services afterwards: `docker compose restart`)*
+
+### In Case Server FingerPrint Changed. Run in local to regenerate new fingerprint. 
+ssh-keygen -R 72.61.119.91

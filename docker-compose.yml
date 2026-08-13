@@ -25,6 +25,7 @@ services:
     volumes:
       - .:/workspace
       - frappe-bench:/home/frappe
+      - ./apps/crm:/home/frappe/frappe-bench/apps/crm
     ports:
       - 8000:8000
       - 9000:9000

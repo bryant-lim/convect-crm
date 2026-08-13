@@ -1,4 +1,7 @@
 .DS_Store
 steps.md
-
-
+__pycache__/
+db-data/
+apps/crm/frontend/node_modules/
+apps/crm/frontend/dist/
+*.pyc
