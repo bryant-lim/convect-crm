@@ -173,6 +173,15 @@ Since the host VPS uses Traefik on port 80/443, we route all traffic using Docke
 
 ---
 
+> [!IMPORTANT]
+> **Git Ownership Reset Warning**:
+> Whenever you run `git pull`, `git fetch`, or `git reset` on the VPS host as the `root` user, Git will reset the ownership of the newly downloaded/modified files back to `root:root`. You must always run the ownership repair command immediately after updating your code to ensure the container can write to these files:
+> ```bash
+> chown -R 1000:1000 /opt/convect-crm
+> ```
+
+---
+
 ## Troubleshooting: How to Reset and Start Clean on VPS
 If the initialization gets interrupted or encounters a setup error, you can completely reset the volumes and containers to start fresh:
 ```bash
