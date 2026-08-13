@@ -52,6 +52,8 @@ else
     bench --site crm.localhost set-config developer_mode 1
     bench --site crm.localhost set-config mute_emails 1
     bench --site crm.localhost set-config server_script_enabled 1
+    bench --site crm.localhost set-config web_chat_secret_token "convect-token-secret-696"
+    bench --site crm.localhost set-config web_chat_allowed_origins '["https://crm.localhost", "https://*.creativatestudio.my"]'
     bench --site crm.localhost clear-cache
     bench use crm.localhost
 
