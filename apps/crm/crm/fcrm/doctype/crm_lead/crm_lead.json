@@ -419,6 +419,12 @@
   {
    "fieldname": "column_break_opsm",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "_user_tags",
+   "fieldtype": "Data",
+   "label": "Tags",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
