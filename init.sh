@@ -15,8 +15,20 @@ else
         fi
     fi
 
-    # Initialize the bench normally
-    bench init --skip-redis-config-generation frappe-bench --version version-15
+    # Initialize the bench in a temp directory because the mount point 'frappe-bench/apps/crm' already exists
+    echo "Initializing bench in temp directory..."
+    bench init --skip-redis-config-generation frappe-bench-temp --version version-15
+    
+    echo "Moving bench files to final directory..."
+    mv frappe-bench-temp/env frappe-bench/
+    mv frappe-bench-temp/config frappe-bench/
+    mv frappe-bench-temp/sites frappe-bench/
+    mv frappe-bench-temp/Procfile frappe-bench/
+    mv frappe-bench-temp/patches.txt frappe-bench/
+    mkdir -p frappe-bench/apps
+    mv frappe-bench-temp/apps/frappe frappe-bench/apps/
+    rm -rf frappe-bench-temp
+
     cd frappe-bench
 
     # Use containers instead of localhost
