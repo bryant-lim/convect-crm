@@ -218,8 +218,12 @@
                   v-model="newTag"
                   :placeholder="__('New Tag...')"
                   size="sm"
+                  list="lead-tags-datalist"
                   @keydown.enter="() => { addTag(newTag); newTag = ''; close(); }"
                 />
+                <datalist id="lead-tags-datalist">
+                  <option v-for="tag in allTags" :key="tag" :value="tag" />
+                </datalist>
                 <Button
                   variant="solid"
                   size="sm"
@@ -531,6 +535,20 @@ async function triggerStatusChange(value) {
 
 const newTag = ref('')
 
+const allTagsResource = createResource({
+  url: 'frappe.client.get_list',
+  params: {
+    doctype: 'Tag',
+    fields: ['name'],
+    limit_page_length: 500,
+  },
+  auto: true,
+})
+
+const allTags = computed(() => {
+  return (allTagsResource.data || []).map((t) => t.name)
+})
+
 function getTags(tagsStr) {
   if (!tagsStr) return []
   return tagsStr.split(',').map(t => t.trim()).filter(Boolean)
@@ -546,6 +564,7 @@ async function addTag(tag) {
       dn: props.leadId
     })
     await document.reload()
+    allTagsResource.reload()
   } catch (err) {
     toast.error(__('Error adding tag'))
   }
