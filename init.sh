@@ -52,5 +52,8 @@ else
     bench --site crm.localhost clear-cache
     bench use crm.localhost
 
+    # Compile custom CRM frontend assets
+    bench build --app crm
+
     bench start
 fi
