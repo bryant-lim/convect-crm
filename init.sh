@@ -14,10 +14,14 @@ else
             find frappe-bench/apps -mindepth 1 -maxdepth 1 ! -name 'crm' -exec rm -rf {} +
         fi
     fi
+    if [ -d "frappe-bench-temp" ]; then
+        echo "Removing residual temp directory..."
+        rm -rf frappe-bench-temp
+    fi
 
     # Initialize the bench in a temp directory because the mount point 'frappe-bench/apps/crm' already exists
     echo "Initializing bench in temp directory..."
-    bench init --skip-redis-config-generation frappe-bench-temp --version version-15
+    bench init --skip-redis-config-generation frappe-bench-temp --version version-15 || exit 1
     
     echo "Moving bench files (including hidden configs) to final directory..."
     # Move all files and folders (including hidden ones starting with .) EXCEPT "apps"
