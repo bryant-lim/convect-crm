@@ -1,20 +1,20 @@
 # Migration Guide: Local to Hostinger VPS (crm.convect.tech)
 
-This guide provides step-by-step instructions to migrate your local Frappe CRM setup (including database, files, WhatsApp/Chatbot integrations, custom tags columns, and secure website live chat webhook API) to your Hostinger VPS running Docker.
+This guide provides step-by-step instructions to migrate your local Frappe CRM setup (including database, files, WhatsApp/Chatbot integrations, custom tags columns, and secure website live chat webhook API) to a fresh Hostinger VPS running Docker.
 
 ---
 
-## Answers to Your Questions
+## Pre-Migration Answers
 
 ### 1. Is compiling into custom apps needed?
 **No.** 
-- All your customization changes in the `crm` app are saved in your local git repository.
+- All your customization changes in the `crm` app are saved in your host repository under `./apps/crm/` and pushed to GitHub.
 - The `frappe_whatsapp` and `frappe_whatsapp_chatbot` integrations are defined in your setup script (`init.sh`).
-- When Docker starts on the VPS, `init.sh` will automatically fetch these apps via Git and install them, ensuring they are identical.
+- When Docker starts on the VPS, `init.sh` will automatically register the local mounted `apps/crm` folder and fetch other apps via Git, keeping them identical.
 
 ### 2. Is a manual backup of the database needed?
 **Yes.**
-Docker containers use volumes (`mariadb-data` and `frappe-bench`) to store the database and uploaded attachments. These files are not stored in Git. You must perform a standard Frappe site backup locally and restore it on the VPS.
+Docker containers use volumes (`mariadb-data` and `frappe-bench`) to store the database and uploaded attachments. These files are not stored in Git. You must perform a standard Frappe site backup locally, copy the backups to your host, and restore them on the VPS.
 
 ### 3. Which directory to use on VPS (`/opt` or `/root`)?
 **Use `/opt/convect-crm`.**
@@ -25,12 +25,12 @@ Docker containers use volumes (`mariadb-data` and `frappe-bench`) to store the d
 
 ## Step-by-Step Migration Guide
 
-### Phase 1: Local Backup
+### Phase 1: Local Backup (On your Mac)
 
 We will generate a complete backup of the database and uploaded files from the local container, and copy them to your host Mac.
 
-1. **Generate the backup**:
-   On your local machine, open a terminal in your workspace directory and run:
+1. **Generate the backup inside the container**:
+   On your Mac, open a terminal in your workspace directory and run:
    ```bash
    docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.localhost backup --with-files"
    ```
@@ -41,7 +41,7 @@ We will generate a complete backup of the database and uploaded files from the l
    ```bash
    docker compose cp frappe:/home/frappe/frappe-bench/sites/crm.localhost/private/backups ./backups
    ```
-   *This extracts the database and attachment files into a new `./backups` folder on your Mac host.*
+   *This extracts the database and attachment files into a new `./backups` folder on your Mac.*
 
 3. **Verify the files**:
    Inside the local `./backups` folder on your Mac, you should see three files:
@@ -51,20 +51,21 @@ We will generate a complete backup of the database and uploaded files from the l
 
 ---
 
-### Phase 2: VPS Server Preparation
+### Phase 2: Fresh VPS Server Preparation (On your VPS)
 
 1. **Connect to your Hostinger VPS**:
    ```bash
    ssh root@your_vps_ip
    ```
 
-2. **Install Docker and Docker Compose** (if not already installed):
+2. **Install Docker and Docker Compose**:
+   Run these commands to install Docker:
    ```bash
    sudo apt-get update
    sudo apt-get install -y docker.io docker-compose
    ```
 
-3. **Set up directory**:
+3. **Set up the directory**:
    Create the directory for your CRM repository under `/opt/convect-crm`:
    ```bash
    mkdir -p /opt/convect-crm
@@ -72,51 +73,40 @@ We will generate a complete backup of the database and uploaded files from the l
 
 ---
 
-### Phase 3: Push Custom Code and Transfer
+### Phase 3: Clone Code & Configure Permissions (On your VPS)
 
-Since we modified the backend API and frontend views to support tags columns, tags deletion, and the live chat webhook, you must push your local code changes to your git repository (`bryant-lim/convect-crm`) and pull it on the VPS.
-
-1. **Commit and push your changes locally**:
-   ```bash
-   git add -A
-   git commit -m "feat: custom tags column, tag management fix, and secure live chat webhook integration"
-   git push origin main
-   ```
-
-2. **Clone/Pull the repository on your VPS**:
+1. **Clone your repository**:
+   Navigate to the target directory and clone your code repository directly:
    ```bash
    cd /opt/convect-crm
    git clone https://github.com/bryant-lim/convect-crm.git .
    ```
 
-3. **Transfer Backup Files to VPS**:
-   Make sure the `/opt/convect-crm/backups` directory is created on the VPS, then run `rsync` from your local machine:
+2. **Fix ownership permissions (CRITICAL)**:
+   Since you cloned the files as `root` on the VPS, the container's internal `frappe` user (UID `1000`) will not have write access to the mounted directories, causing permission errors. Change the ownership of the entire directory:
    ```bash
-   # Create directory on VPS (if not done already)
-   ssh root@your_vps_ip "mkdir -p /opt/convect-crm/backups"
-
-   # Run from your local Mac terminal to transfer the backups folder
-   rsync -avz ./backups/ root@your_vps_ip:/opt/convect-crm/backups/
+   chown -R 1000:1000 /opt/convect-crm
    ```
 
 ---
 
-### Phase 4: Spin up Docker & Restore Database on VPS
+### Phase 4: Transfer Backup Files to VPS (On your Mac)
+
+Using `rsync` from your local machine, transfer your backups to the newly created `/opt/convect-crm/backups` directory on the VPS:
+
+```bash
+# Run this from your local Mac terminal
+rsync -avz ./backups/ root@your_vps_ip:/opt/convect-crm/backups/
+```
+
+---
+
+### Phase 5: Start Docker & Restore Database (On your VPS)
 
 1. **Modify Site Initialization in `init.sh` for Production**:
-   Open `/opt/convect-crm/init.sh` on the VPS. 
-   To support your production domain `crm.convect.tech`, we need the site folder name to match the domain.
-   Replace instances of `crm.localhost` with `crm.convect.tech` in the setup script.
-   
-   *Example block in VPS `init.sh`:*
+   Open `/opt/convect-crm/init.sh` on the VPS (or use this inline command) to replace the local `crm.localhost` site domain with your production domain `crm.convect.tech`:
    ```bash
-   bench new-site crm.convect.tech \
-       --mariadb-root-password 123 \
-       --admin-password admin \
-       --no-mariadb-socket
-   bench --site crm.convect.tech install-app crm
-   bench --site crm.convect.tech install-app frappe_whatsapp
-   bench --site crm.convect.tech install-app frappe_whatsapp_chatbot
+   sed -i 's/crm.localhost/crm.convect.tech/g' init.sh
    ```
 
 2. **Start Docker containers on the VPS**:
@@ -124,7 +114,11 @@ Since we modified the backend API and frontend views to support tags columns, ta
    cd /opt/convect-crm
    docker compose up -d
    ```
-   *Wait for the `frappe` service initialization to finish installing and setting up the apps.*
+   *Wait for the `frappe` service initialization to finish installing and setting up the apps. You can monitor the progress with:*
+   ```bash
+   docker compose logs -f frappe
+   ```
+   *(Press Ctrl + C to exit log view once it shows standard bench startup services).*
 
 3. **Restore the database and files**:
    Run the restore command inside the VPS container targeting your production site `crm.convect.tech` (pointing to the shared `/workspace/backups/` directory):
@@ -144,9 +138,9 @@ Since we modified the backend API and frontend views to support tags columns, ta
 
 ---
 
-### Phase 5: Domain Routing & SSL Setup (Nginx Reverse Proxy)
+### Phase 6: Domain Routing & SSL Setup (Nginx Reverse Proxy)
 
-Since Frappe CRM runs on port `8000` (Vite backend/web API) and port `9000` (Socket.IO websockets), we set up Nginx on the host VPS to forward external requests on port `80` (HTTP) and `443` (HTTPS) to the containers.
+Set up Nginx on the host VPS to forward external web requests on port `80` (HTTP) and `443` (HTTPS) to the containers.
 
 1. **Install Nginx and Certbot** on the VPS host:
    ```bash
@@ -191,6 +185,17 @@ Since Frappe CRM runs on port `8000` (Vite backend/web API) and port `9000` (Soc
    sudo certbot --nginx -d crm.convect.tech
    ```
    *Certbot will automatically obtain certificates and update your Nginx configuration.*
+
+---
+
+## Troubleshooting: How to Reset and Start Clean on VPS
+If the initialization gets interrupted or encounters a setup error, you can completely reset the volumes and containers to start fresh:
+```bash
+cd /opt/convect-crm
+docker compose down -v
+chown -R 1000:1000 /opt/convect-crm
+docker compose up -d
+```
 
 ---
 
@@ -330,4 +335,3 @@ function onFormSubmit(e) {
    - **Select event source**: `From form`
    - **Select event type**: `On form submit`
 7. Click **Save** and authorize permissions when prompted.
-
