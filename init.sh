@@ -21,6 +21,7 @@ else
     # Link the custom crm app from the workspace mount
     echo "Symlinking custom CRM app..."
     ln -s /workspace/apps/crm apps/crm
+    ./env/bin/pip install -e apps/crm
 
     # Use containers instead of localhost
     bench set-mariadb-host mariadb
