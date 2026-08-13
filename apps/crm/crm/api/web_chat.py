@@ -44,10 +44,11 @@ def capture_web_lead(name, email, mobile_no=None, company_name=None, source="web
 		# If notes is provided, append it to the existing lead's notes anyway!
 		if notes:
 			note = frappe.get_doc({
-				"doctype": "CRM Note",
-				"parenttype": "CRM Lead",
-				"parent": existing_lead,
-				"note": f"New Enquiry summary:\n{notes}"
+				"doctype": "FCRM Note",
+				"title": "Chat / Lead Summary",
+				"content": f"New Enquiry summary:\n{notes}",
+				"reference_doctype": "CRM Lead",
+				"reference_docname": existing_lead
 			})
 			note.insert(ignore_permissions=True)
 		return {"status": "already_exists", "lead": existing_lead}
@@ -71,10 +72,11 @@ def capture_web_lead(name, email, mobile_no=None, company_name=None, source="web
 	# 4. Insert Notes/Chat Summary as CRM Note under this Lead
 	if notes:
 		note = frappe.get_doc({
-			"doctype": "CRM Note",
-			"parenttype": "CRM Lead",
-			"parent": lead.name,
-			"note": f"Enquiry summary:\n{notes}"
+			"doctype": "FCRM Note",
+			"title": "Chat / Lead Summary",
+			"content": f"Enquiry summary:\n{notes}",
+			"reference_doctype": "CRM Lead",
+			"reference_docname": lead.name
 		})
 		note.insert(ignore_permissions=True)
 
