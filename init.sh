@@ -19,12 +19,11 @@ else
     echo "Initializing bench in temp directory..."
     bench init --skip-redis-config-generation frappe-bench-temp --version version-15
     
-    echo "Moving bench files to final directory..."
-    mv frappe-bench-temp/env frappe-bench/
-    mv frappe-bench-temp/config frappe-bench/
-    mv frappe-bench-temp/sites frappe-bench/
-    mv frappe-bench-temp/Procfile frappe-bench/
-    mv frappe-bench-temp/patches.txt frappe-bench/
+    echo "Moving bench files (including hidden configs) to final directory..."
+    # Move all files and folders (including hidden ones starting with .) EXCEPT "apps"
+    find frappe-bench-temp -mindepth 1 -maxdepth 1 ! -name 'apps' -exec mv -t frappe-bench/ {} +
+    
+    # Move the frappe app folder
     mkdir -p frappe-bench/apps
     mv frappe-bench-temp/apps/frappe frappe-bench/apps/
     rm -rf frappe-bench-temp
