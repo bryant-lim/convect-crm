@@ -6,33 +6,21 @@ if [ -d "/home/frappe/frappe-bench/apps/frappe" ] && [ -f "/home/frappe/frappe-b
     bench start
 else
     echo "Creating new bench..."
-    # If the directory exists but frappe is not present (incomplete initialization), clean it up first
+    # Clean up any broken/incomplete directories
     if [ -d "frappe-bench" ]; then
         echo "Removing incomplete frappe-bench directory..."
-        find frappe-bench -mindepth 1 -maxdepth 1 ! -name 'apps' -exec rm -rf {} +
-        if [ -d "frappe-bench/apps" ]; then
-            find frappe-bench/apps -mindepth 1 -maxdepth 1 ! -name 'crm' -exec rm -rf {} +
-        fi
-    fi
-    if [ -d "frappe-bench-temp" ]; then
-        echo "Removing residual temp directory..."
-        rm -rf frappe-bench-temp
+        rm -rf frappe-bench
     fi
 
-    # Initialize the bench in a temp directory because the mount point 'frappe-bench/apps/crm' already exists
-    echo "Initializing bench in temp directory..."
-    bench init --skip-redis-config-generation frappe-bench-temp --version version-15 || exit 1
+    # Initialize the bench normally (this will succeed 100% since there are no nested mount points inside)
+    echo "Initializing bench..."
+    bench init --skip-redis-config-generation frappe-bench --version version-15 || exit 1
     
-    echo "Moving bench files (including hidden configs) to final directory..."
-    # Move all files and folders (including hidden ones starting with .) EXCEPT "apps"
-    find frappe-bench-temp -mindepth 1 -maxdepth 1 ! -name 'apps' -exec mv -t frappe-bench/ {} +
-    
-    # Move the frappe app folder
-    mkdir -p frappe-bench/apps
-    mv frappe-bench-temp/apps/frappe frappe-bench/apps/
-    rm -rf frappe-bench-temp
-
     cd frappe-bench
+
+    # Link the custom crm app from the workspace mount
+    echo "Symlinking custom CRM app..."
+    ln -s /workspace/apps/crm apps/crm
 
     # Use containers instead of localhost
     bench set-mariadb-host mariadb
@@ -44,9 +32,7 @@ else
     sed -i '/redis/d' ./Procfile
     sed -i '/watch/d' ./Procfile
 
-    if [ ! -d "apps/crm" ]; then
-        bench get-app crm --branch main
-    fi
+    # Fetch other apps
     bench get-app https://github.com/shridarpatil/frappe_whatsapp.git
     bench get-app https://github.com/shridarpatil/frappe_whatsapp_chatbot.git
 
