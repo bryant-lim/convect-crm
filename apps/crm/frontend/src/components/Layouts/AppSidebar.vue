@@ -125,15 +125,7 @@
               <BrushCleaningIcon class="size-4" />
             </template>
           </SidebarItem>
-          <SidebarItem
-            v-if="isOnboardingStepsCompleted"
-            :label="__('Help')"
-            @click="toggleHelpModal"
-          >
-            <template #prefix>
-              <HelpIcon class="size-4 text-ink-gray-7" />
-            </template>
-          </SidebarItem>
+
           <SidebarItem
             :label="isCollapsed ? __('Expand') : __('Collapse')"
             @click="isSidebarCollapsed = !isSidebarCollapsed"
@@ -288,17 +280,7 @@ const links = [
     icon: TaskIcon,
     to: 'Tasks',
   },
-  {
-    label: 'Calendar',
-    icon: CalendarIcon,
-    to: 'Calendar',
-    condition: () => !props.mobile,
-  },
-  {
-    label: 'Call Logs',
-    icon: PhoneIcon,
-    to: 'Call Logs',
-  },
+
 ]
 
 const allViews = computed(() => {
