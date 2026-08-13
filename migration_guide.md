@@ -27,19 +27,24 @@ Docker containers use volumes (`mariadb-data` and `frappe-bench`) to store the d
 
 ### Phase 1: Local Backup
 
-We will generate a complete backup of the database and uploaded files from the local container.
+We will generate a complete backup of the database and uploaded files from the local container, and copy them to your host Mac.
 
 1. **Generate the backup**:
    On your local machine, open a terminal in your workspace directory and run:
    ```bash
    docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.localhost backup --with-files"
    ```
-   *This command outputs the path of the backup files created inside the container.*
+   *This command generates the backup files inside the container's volume.*
 
-2. **Locate the files**:
-   The backup files are saved in:
-   `./sites/crm.localhost/private/backups/`
-   You will find three files:
+2. **Copy the backups from the container to your Mac**:
+   Run this in the same terminal on your Mac:
+   ```bash
+   docker compose cp frappe:/home/frappe/frappe-bench/sites/crm.localhost/private/backups ./backups
+   ```
+   *This extracts the database and attachment files into a new `./backups` folder on your Mac host.*
+
+3. **Verify the files**:
+   Inside the local `./backups` folder on your Mac, you should see three files:
    - `[timestamp]_database.sql.gz` (Database)
    - `[timestamp]_files.tar` (Public Uploads)
    - `[timestamp]_private_files.tar` (Private Uploads)
@@ -85,10 +90,13 @@ Since we modified the backend API and frontend views to support tags columns, ta
    ```
 
 3. **Transfer Backup Files to VPS**:
-   Using `rsync` from your local machine, transfer your backups to the VPS folder:
+   Make sure the `/opt/convect-crm/backups` directory is created on the VPS, then run `rsync` from your local machine:
    ```bash
-   # Run from your local terminal
-   rsync -avz ./sites/crm.localhost/private/backups/ root@your_vps_ip:/opt/convect-crm/sites/crm.localhost/private/backups/
+   # Create directory on VPS (if not done already)
+   ssh root@your_vps_ip "mkdir -p /opt/convect-crm/backups"
+
+   # Run from your local Mac terminal to transfer the backups folder
+   rsync -avz ./backups/ root@your_vps_ip:/opt/convect-crm/backups/
    ```
 
 ---
@@ -119,13 +127,12 @@ Since we modified the backend API and frontend views to support tags columns, ta
    *Wait for the `frappe` service initialization to finish installing and setting up the apps.*
 
 3. **Restore the database and files**:
-   Find the backup filenames you copied to the VPS (located in `/opt/convect-crm/sites/crm.localhost/private/backups/`).
-   Run the restore command inside the VPS container targeting your production site `crm.convect.tech`:
+   Run the restore command inside the VPS container targeting your production site `crm.convect.tech` (pointing to the shared `/workspace/backups/` directory):
    ```bash
    docker compose exec frappe bash -c "cd frappe-bench && bench --site crm.convect.tech restore \
-       sites/crm.localhost/private/backups/[timestamp]_database.sql.gz \
-       --with-public-files sites/crm.localhost/private/backups/[timestamp]_files.tar \
-       --with-private-files sites/crm.localhost/private/backups/[timestamp]_private_files.tar"
+       /workspace/backups/[timestamp]_database.sql.gz \
+       --with-public-files /workspace/backups/[timestamp]_files.tar \
+       --with-private-files /workspace/backups/[timestamp]_private_files.tar"
    ```
    *Confirm the database replacement if prompted.*
 
