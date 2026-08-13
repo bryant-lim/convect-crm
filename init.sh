@@ -9,7 +9,10 @@ else
     # If the directory exists but frappe is not present (incomplete initialization), clean it up first
     if [ -d "frappe-bench" ]; then
         echo "Removing incomplete frappe-bench directory..."
-        rm -rf frappe-bench
+        find frappe-bench -mindepth 1 -maxdepth 1 ! -name 'apps' -exec rm -rf {} +
+        if [ -d "frappe-bench/apps" ]; then
+            find frappe-bench/apps -mindepth 1 -maxdepth 1 ! -name 'crm' -exec rm -rf {} +
+        fi
     fi
 
     # Initialize the bench normally
