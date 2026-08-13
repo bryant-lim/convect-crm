@@ -65,7 +65,7 @@ def capture_web_lead(name, email, mobile_no=None, company_name=None, source="web
 		"email": email,
 		"mobile_no": mobile_no or "",
 		"organization": company_name or "",
-		"lead_source": source or "web_chat"
+		"source": source or "web_chat"
 	})
 	lead.insert(ignore_permissions=True)
 	
