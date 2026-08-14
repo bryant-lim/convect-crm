@@ -67,7 +67,7 @@
 	/* Force container centering and clean layout */
 	.web-page-content {
 		width: 100% !important;
-		max-width: 480px !important;
+		max-width: 540px !important;
 		margin: 0 auto !important;
 		padding: 20px !important;
 	}
@@ -123,8 +123,8 @@
 		border: 1px solid rgba(255, 255, 255, 0.1) !important;
 		color: #ffffff !important;
 		border-radius: 12px !important;
-		padding: 0.75rem 1rem 0.75rem 2.75rem !important;
-		font-size: 0.95rem !important;
+		padding: 1rem 1.2rem 1rem 3rem !important;
+		font-size: 1.05rem !important;
 		transition: all 0.25s ease !important;
 		box-sizing: border-box !important;
 		width: 100% !important;
@@ -269,12 +269,7 @@
 
 {% macro logo_section(title=null) %}
 <div class="page-card-head">
-	<div class="logo-wrapper">
-		<svg width="60" height="60" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path d="M214.286 0H85.7143C38.3756 0 0 38.3756 0 85.7143V214.286C0 261.624 38.3756 300 85.7143 300H214.286C261.624 300 300 261.624 300 214.286V85.7143C300 38.3756 261.624 0 214.286 0Z" fill="#EF0BF5"/>
-			<path d="M64.2141 90.301V111.862H214.339V140.214L160.187 193.146V208.993L139.705 208.885V193.146L85.6605 140.214H64.2141V149.269L118.259 202.202V230.23L181.634 230.769V202.202L235.786 149.269V90.301H64.2141Z" fill="white"/>
-		</svg>
-	</div>
+	<img class="app-logo" src="/assets/crm/images/convect_logo.png" style="max-height: 80px; width: auto; margin-bottom: 10px;">
 	{% if title %}
 	<h4>{{ _(title)}}</h4>
 	{% else %}
