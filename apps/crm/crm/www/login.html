@@ -53,9 +53,9 @@
 {% block head_include %}
 {{ include_style('login.bundle.css') }}
 <style>
-	/* Full screen background gradient */
+	/* Pure white background layout */
 	body, .web-page {
-		background: radial-gradient(circle at center, #1e0936 0%, #0a0314 100%) !important;
+		background: #ffffff !important;
 		min-height: 100vh !important;
 		display: flex !important;
 		align-items: center !important;
@@ -64,196 +64,194 @@
 		margin: 0 !important;
 	}
 
-	/* Force container centering and clean layout */
+	/* Center and size content card */
 	.web-page-content {
 		width: 100% !important;
-		max-width: 540px !important;
+		max-width: 480px !important; /* Minimal design is cleaner slightly narrower */
 		margin: 0 auto !important;
 		padding: 20px !important;
 	}
 
-	/* Glassmorphism Card style */
+	/* Completely clean, borderless container */
 	.login-content.page-card, .page-card {
-		background: rgba(255, 255, 255, 0.04) !important;
-		backdrop-filter: blur(20px) saturate(180%) !important;
-		-webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-		border: 1px solid rgba(255, 255, 255, 0.08) !important;
-		border-radius: 20px !important;
-		box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5) !important;
-		padding: 2rem !important;
-		margin-top: 1rem !important;
+		background: #ffffff !important;
+		border: none !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		margin-top: 1.5rem !important;
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
 	}
 
-	/* Logo and title container */
+	/* Logo and title layout */
 	.page-card-head {
 		display: flex !important;
 		flex-direction: column !important;
 		align-items: center !important;
-		margin-bottom: 1.5rem !important;
+		margin-bottom: 2rem !important;
 		text-align: center !important;
 	}
 
-	.logo-wrapper {
-		display: inline-flex !important;
-		align-items: center !important;
-		justify-content: center !important;
-		background: rgba(255, 255, 255, 0.02) !important;
-		padding: 10px !important;
-		border-radius: 18px !important;
-		border: 1px solid rgba(255, 255, 255, 0.06) !important;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-		transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-	}
-
-	.logo-wrapper:hover {
-		transform: scale(1.05) rotate(2deg) !important;
-	}
-
 	.page-card-head h4 {
-		color: #ffffff !important;
-		font-weight: 600 !important;
-		font-size: 1.5rem !important;
-		margin-top: 1.25rem !important;
-		letter-spacing: -0.025em !important;
+		color: #111827 !important;
+		font-weight: 700 !important;
+		font-size: 1.6rem !important;
+		margin-top: 1rem !important;
+		letter-spacing: -0.03em !important;
 	}
 
-	/* Form Controls (Inputs) */
+	/* Visible labels placed above form inputs */
+	.sr-only {
+		position: relative !important;
+		width: auto !important;
+		height: auto !important;
+		padding: 0 !important;
+		margin: 0 0 8px 0 !important;
+		overflow: visible !important;
+		clip: auto !important;
+		white-space: normal !important;
+		display: inline-block !important;
+		font-size: 0.9rem !important;
+		font-weight: 600 !important;
+		color: #374151 !important;
+	}
+
+	/* Bordered inputs */
 	.form-control {
-		background: rgba(255, 255, 255, 0.05) !important;
-		border: 1px solid rgba(255, 255, 255, 0.1) !important;
-		color: #ffffff !important;
-		border-radius: 12px !important;
-		padding: 1rem 1.2rem 1rem 3rem !important;
-		font-size: 1.05rem !important;
-		transition: all 0.25s ease !important;
+		background: #ffffff !important;
+		border: 1px solid #d1d5db !important;
+		color: #1f2937 !important;
+		border-radius: 6px !important;
+		padding: 0.8rem 1rem !important; /* No extra left padding since icon is hidden */
+		font-size: 1rem !important;
+		transition: all 0.2s ease !important;
 		box-sizing: border-box !important;
 		width: 100% !important;
 	}
 
 	.form-control::placeholder {
-		color: rgba(255, 255, 255, 0.35) !important;
+		color: #9ca3af !important;
 	}
 
 	.form-control:focus {
-		background: rgba(255, 255, 255, 0.08) !important;
-		border-color: #EF0BF5 !important;
-		box-shadow: 0 0 0 4px rgba(239, 11, 245, 0.2) !important;
+		background: #ffffff !important;
+		border-color: #1f2937 !important; /* Dark focus outline */
+		box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1) !important;
 		outline: none !important;
 	}
 
-	/* Icon styles inside input fields */
+	/* Position inputs and hide field icons */
 	.email-field, .password-field {
 		position: relative !important;
-		margin-bottom: 1.25rem !important;
+		margin-bottom: 1.5rem !important;
 		width: 100% !important;
 	}
 
 	.field-icon {
+		display: none !important;
+	}
+
+	/* Hide default toggle element or style cleanly on the right */
+	.toggle-password {
 		position: absolute !important;
-		left: 1rem !important;
+		right: 1rem !important;
 		top: 50% !important;
 		transform: translateY(-50%) !important;
-		stroke: rgba(255, 255, 255, 0.4) !important;
-		pointer-events: none !important;
-		transition: stroke 0.25s ease !important;
-	}
-
-	.form-control:focus + .field-icon {
-		stroke: #EF0BF5 !important;
-	}
-
-	/* Show Password Text toggle */
-	.toggle-password {
-		right: 1rem !important;
-		color: rgba(255, 255, 255, 0.45) !important;
+		color: #6b7280 !important;
 		font-size: 0.85rem !important;
 		font-weight: 500 !important;
 		cursor: pointer !important;
 		transition: color 0.2s ease !important;
+		z-index: 10 !important;
 	}
 
 	.toggle-password:hover {
-		color: #EF0BF5 !important;
+		color: #111827 !important;
 	}
 
-	/* Forgot Password Link */
+	/* Align Forgot Password next to Password label */
 	.forgot-password-message {
-		text-align: right !important;
-		margin-top: -0.5rem !important;
-		margin-bottom: 1.5rem !important;
+		position: absolute !important;
+		right: 0 !important;
+		top: -30px !important; /* Positions level with the visible password label */
+		margin: 0 !important;
+		z-index: 10 !important;
 	}
 
 	.forgot-password-message a {
-		color: rgba(255, 255, 255, 0.5) !important;
+		color: #4f46e5 !important; /* Purple link as in mockup */
 		font-size: 0.875rem !important;
+		font-weight: 500 !important;
 		text-decoration: none !important;
 		transition: color 0.2s ease !important;
 	}
 
 	.forgot-password-message a:hover {
-		color: #EF0BF5 !important;
+		color: #3730a3 !important;
+		text-decoration: underline !important;
 	}
 
-	/* Action Buttons (Login Button) */
+	/* Solid dark grey button */
 	.btn-login, .btn-primary {
-		background: #EF0BF5 !important;
+		background: #1f2937 !important; /* Dark Grey */
 		border: none !important;
 		color: #ffffff !important;
 		font-weight: 600 !important;
 		padding: 0.8rem 1.5rem !important;
 		font-size: 1rem !important;
-		border-radius: 12px !important;
-		transition: all 0.25s ease !important;
-		box-shadow: 0 4px 14px rgba(239, 11, 245, 0.3) !important;
+		border-radius: 6px !important;
+		transition: background-color 0.2s ease !important;
 		cursor: pointer !important;
 		width: 100% !important;
+		box-shadow: none !important;
 	}
 
 	.btn-login:hover, .btn-primary:hover {
-		background: #f82cfc !important;
-		transform: translateY(-1px) !important;
-		box-shadow: 0 6px 20px rgba(239, 11, 245, 0.45) !important;
+		background: #111827 !important;
+		box-shadow: none !important;
+		transform: none !important;
 	}
 
 	.btn-login:active, .btn-primary:active {
-		transform: translateY(1px) !important;
+		background: #000000 !important;
 	}
 
 	/* Divider text "or" */
 	.login-divider {
-		color: rgba(255, 255, 255, 0.3) !important;
+		color: #6b7280 !important;
 		margin: 1.5rem 0 !important;
-		font-size: 0.9rem !important;
+		font-size: 0.875rem !important;
 	}
 
-	/* Social Login Buttons */
+	/* Social Buttons style */
 	.btn-login-option, .btn-default {
-		background: rgba(255, 255, 255, 0.04) !important;
-		border: 1px solid rgba(255, 255, 255, 0.08) !important;
-		color: #ffffff !important;
+		background: #ffffff !important;
+		border: 1px solid #d1d5db !important;
+		color: #374151 !important;
 		font-weight: 500 !important;
-		padding: 0.7rem 1.2rem !important;
-		border-radius: 12px !important;
+		padding: 0.75rem 1.2rem !important;
+		border-radius: 6px !important;
 		transition: all 0.2s ease !important;
 	}
 
 	.btn-login-option:hover, .btn-default:hover {
-		background: rgba(255, 255, 255, 0.08) !important;
-		border-color: rgba(255, 255, 255, 0.15) !important;
+		background: #f9fafb !important;
+		border-color: #9ca3af !important;
 	}
 
-	/* Sign Up messages */
+	/* Footer sign-up section */
 	.sign-up-message {
-		color: rgba(255, 255, 255, 0.5) !important;
-		margin-top: 1.5rem !important;
+		color: #374151 !important;
+		margin-top: 2rem !important;
 		font-size: 0.9rem !important;
+		font-weight: 500 !important;
 	}
 
 	.sign-up-message a {
-		color: #EF0BF5 !important;
-		font-weight: 500 !important;
+		color: #4f46e5 !important;
+		font-weight: 600 !important;
 		text-decoration: none !important;
-		transition: text-decoration 0.2s ease !important;
 	}
 
 	.sign-up-message a:hover {
