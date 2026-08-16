@@ -64,10 +64,16 @@
 		margin: 0 !important;
 	}
 
-	/* Center and size content card */
-	.web-page-content {
+	/* Center and size content card and parent bootstrap column layout */
+	.web-page-content,
+	[class*="col-"]:has(.for-login),
+	[class*="col-"]:has(.for-signup),
+	[class*="col-"]:has(.for-forgot),
+	[class*="col-"]:has(.for-email-login),
+	[class*="col-"]:has(.for-login-with-email-link) {
 		width: 100% !important;
 		max-width: 640px !important; /* Spacious modern wide layout */
+		flex: 0 0 640px !important;
 		margin: 0 auto !important;
 		padding: 20px !important;
 	}
